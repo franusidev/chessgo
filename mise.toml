@@ -1,0 +1,5 @@
+[tools]
+go = "latest"
+[tasks.build]
+description = "Build the chess cli"
+run = "go build -o bin/coordinateschess cmd/coordinateschess/main.go "
