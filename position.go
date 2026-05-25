@@ -79,6 +79,10 @@ func NewStartingPosition() Position {
 	}
 }
 
+func NewPositionFromFen(fen string) Position {
+	return Position{}
+}
+
 // PieceAt returns the piece at a given location
 //
 // The flat representation of a chessboard assumes that in a starting position:

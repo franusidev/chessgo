@@ -4,24 +4,30 @@ import (
 	"testing"
 )
 
-func TestNewStartingPosition(t *testing.T) {
-	expected := [64]Piece{
-		BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
-		BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn,
-		Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-		Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-		Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-		Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-		WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn,
-		WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook,
-	}
-	pos := NewStartingPosition()
-	for i, want := range expected {
-		got := pos.PieceAt(i)
-		if got != want {
-			t.Errorf("square %c%d: want %v, got %v", 'A'+i/8, i%8+1, want, got)
+var startingPieces = [64]Piece{
+	BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
+	BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn,
+	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+	WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn,
+	WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook,
+}
+
+func comparePiecesPosition(t *testing.T, want [64]Piece, got Position) {
+	for i, wantPiece := range want {
+		gotPiece := got.PieceAt(i)
+		if gotPiece != wantPiece {
+			t.Errorf("square %c%d: want '%v', got '%v'", 'A'+i/8, i%8+1, wantPiece, gotPiece)
 		}
 	}
+}
+
+func TestNewStartingPosition(t *testing.T) {
+	expected := startingPieces
+	pos := NewStartingPosition()
+	comparePiecesPosition(t, expected, pos)
 
 	if pos.SideToMove() != White {
 		t.Errorf("expected White to move")
@@ -137,4 +143,23 @@ func TestColorString(t *testing.T) {
 		})
 	}
 
+}
+func TestNewPositionFromFen(t *testing.T) {
+	testsValid := []struct {
+		name       string
+		fen        string
+		wantPieces [64]Piece
+	}{
+		{
+			name:       "starting position",
+			fen:        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			wantPieces: startingPieces,
+		},
+	}
+	for _, tt := range testsValid {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewPositionFromFen(tt.fen)
+			comparePiecesPosition(t, tt.wantPieces, got)
+		})
+	}
 }
