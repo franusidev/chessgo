@@ -45,7 +45,7 @@ type Color bool
 
 const (
 	White = true
-	False = false
+	Black = false
 )
 
 func (c Color) String() string {

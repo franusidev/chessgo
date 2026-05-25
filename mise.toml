@@ -1,5 +1,19 @@
 [tools]
 go = "latest"
+[tasks.coordinatechess]
+description = "Run the coordinate chess"
+run = "go run cmd/coordinateschess/main.go "
 [tasks.build]
 description = "Build the chess cli"
 run = "go build -o bin/coordinateschess cmd/coordinateschess/main.go "
+[tasks.test]
+description = "Test the project"
+run = [
+	"go test ./... -cover -coverprofile=coverage.out",
+]
+[tasks.coverage]
+description = "Show the test coverage"
+run = [
+	"go test ./... -coverprofile=coverage.out",
+	"go tool cover -html=coverage.out"
+]

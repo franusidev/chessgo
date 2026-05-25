@@ -3,27 +3,29 @@ package main
 import (
 	"fmt"
 	"github.com/franusidev/chessgo"
+	"strings"
 )
 
-func displayPosition(pos chessgo.Position) {
+func renderPosition(pos chessgo.Position) string {
+	var b strings.Builder
 	printSeparator := func() {
-		fmt.Println("   --- --- --- --- --- --- --- --- ")
+		b.WriteString("   --- --- --- --- --- --- --- --- \n")
 	}
 	for i := range 8 {
 		printSeparator()
-		fmt.Printf("%d ", 8-i)
+		fmt.Fprintf(&b, "%d ", 8-i)
 		for j := range 8 {
-			fmt.Printf("| %v ", pos.PieceAt(i*8+j))
+			fmt.Fprintf(&b, "| %v ", pos.PieceAt(i*8+j))
 		}
-		fmt.Println("|")
+		b.WriteString("|\n")
 	}
 	printSeparator()
-	fmt.Println("    A   B   C   D   E   F   G   H  ")
-	fmt.Println()
-	fmt.Printf("%v to move\n", pos.SideToMove())
+	b.WriteString("    A   B   C   D   E   F   G   H  \n\n")
+	fmt.Fprintf(&b, "%v to move\n", pos.SideToMove())
+	return b.String()
 }
 
 func main() {
 	pos := chessgo.NewStartingPosition()
-	displayPosition(pos)
+	fmt.Println(renderPosition(pos))
 }
