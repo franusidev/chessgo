@@ -57,7 +57,7 @@ func comparePositions(t *testing.T, want Position, got Position) {
 	wantInfo := want.Info()
 	gotInfo := got.Info()
 	if diff := cmp.Diff(wantInfo, gotInfo); diff != "" {
-		t.Errorf("wrong info for starting position (-want +got):\n%s", diff)
+		t.Errorf("wrong position info fields (-want +got):\n%s", diff)
 	}
 }
 
@@ -67,6 +67,38 @@ func TestNewStartingPosition(t *testing.T) {
 	comparePositions(t, expected, pos)
 }
 
+func TestNewCastlingFromFen(t *testing.T) {
+	testsValid := []struct {
+		name        string
+		castlingfen string
+		want        Castling
+		wantErr     bool
+	}{
+		{
+			name:        "all available castling options",
+			castlingfen: "KQkq",
+			want:        Castling(0b1111),
+		},
+	}
+	for _, tt := range testsValid {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := NewCastlingFromFen(tt.castlingfen)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("should return an error")
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("should not return error: %s", err)
+				}
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("wrong castling parsing (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 func TestParsePiecesFen(t *testing.T) {
 	testsValid := []struct {
 		name       string
