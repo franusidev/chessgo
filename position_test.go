@@ -6,7 +6,7 @@ import (
 )
 
 var testingPositions = map[string]Position{
-	"starting": Position{
+	"starting": {
 		board: [64]Piece{
 			BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
 			BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn,
@@ -19,6 +19,23 @@ var testingPositions = map[string]Position{
 		},
 		sideToMove:      White,
 		castling:        0b1111,
+		epSquare:        -1,
+		halfMoveClock:   0,
+		fullMoveCounter: 0,
+	},
+	"empty": {
+		board: [64]Piece{
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+		},
+		sideToMove:      White,
+		castling:        0b0000,
 		epSquare:        -1,
 		halfMoveClock:   0,
 		fullMoveCounter: 0,
@@ -61,14 +78,70 @@ func TestParsePiecesFen(t *testing.T) {
 			name:       "starting position",
 			piecesfen:  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
 			wantPieces: testingPositions["starting"].board,
-			wantErr:    false,
+		},
+		{
+			name:       "empty board",
+			piecesfen:  "8/8/8/8/8/8/8/8",
+			wantPieces: testingPositions["empty"].board,
+		},
+		{
+			name:      "wrong number of rows",
+			piecesfen: "8/8/8/8/pppppppp/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "too many empty pieces in a row",
+			piecesfen: "9/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "too many pieces in a row",
+			piecesfen: "ppppppppp/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "too many mixed pieces and empty",
+			piecesfen: "pp6p/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "too little empty pieces in a row",
+			piecesfen: "9/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "too little pieces in a row",
+			piecesfen: "pppppp/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "too little mixed pieces and empty",
+			piecesfen: "pp2p/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "made up piece id",
+			piecesfen: "ppppxppp/8/8/8/8/8/8/8",
+			wantErr:   true,
+		},
+		{
+			name:      "space instead of number for empty",
+			piecesfen: "pppp ppp/3 4/8/8/8/8/8/8",
+			wantErr:   true,
 		},
 	}
 	for _, tt := range testsValid {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := parsePiecesFen(tt.piecesfen)
-			if err != nil && !tt.wantErr {
-				t.Fatalf("parsePiecesFen returned error: %s", err)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("parsePiecesFen did not return an error")
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("parsePiecesFen returned error: %s", err)
+				}
 			}
 			comparePieces(t, tt.wantPieces, got)
 		})
@@ -77,19 +150,30 @@ func TestParsePiecesFen(t *testing.T) {
 
 func TestNewPositionFromFen(t *testing.T) {
 	testsValid := []struct {
-		name string
-		fen  string
-		want Position
+		name    string
+		fen     string
+		want    Position
+		wantErr bool
 	}{
 		{
-			name: "starting position",
-			fen:  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			want: testingPositions["starting"],
+			name:    "starting position",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			want:    testingPositions["starting"],
+			wantErr: false,
 		},
 	}
 	for _, tt := range testsValid {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _ := NewPositionFromFen(tt.fen)
+			got, err := NewPositionFromFen(tt.fen)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("NewPositionFromFen did not return an error")
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("NewPositionFromFen returned error: %s", err)
+				}
+			}
 			comparePositions(t, tt.want, got)
 		})
 	}

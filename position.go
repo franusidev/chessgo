@@ -85,6 +85,13 @@ func (c Color) String() string {
 	}
 }
 
+type Castling uint8
+
+func NewCastlingFromFen(castlingfen string) (Castling, error) {
+	castling := Castling(0b0000)
+	return castling, nil
+}
+
 // A Position describing a current state in a chess game
 type Position struct {
 	board      [64]Piece
@@ -131,15 +138,16 @@ func parsePiecesFen(fenpieces string) ([64]Piece, error) {
 	pieces := [64]Piece{}
 	rows := strings.Split(fenpieces, "/")
 	if len(rows) != 8 {
-		return [64]Piece{}, fmt.Errorf("wrong number of rows in fen pieces: (want:8 got:%d)", len(rows))
+		return [64]Piece{}, fmt.Errorf("wrong number of rows in fen string pieces: (want:8 got:%d)", len(rows))
 	}
 	for i, row := range rows {
-		currentpiece := i * 8
+		currentrow := i * 8
+		currentpiece := 0
 		for _, ch := range row {
 			if ch >= '0' && ch <= '9' {
 				emptySpaces := int(ch - '0')
 				for range emptySpaces {
-					pieces[currentpiece] = Empty
+					pieces[currentrow+currentpiece] = Empty
 					currentpiece++
 				}
 			} else {
@@ -150,9 +158,12 @@ func parsePiecesFen(fenpieces string) ([64]Piece, error) {
 				if piece == Empty {
 					return [64]Piece{}, fmt.Errorf("error parsing piece %d at row %d: empty space instead of number", currentpiece, i)
 				}
-				pieces[currentpiece] = piece
+				pieces[currentrow+currentpiece] = piece
 				currentpiece++
 			}
+		}
+		if currentpiece != 8 {
+			return [64]Piece{}, fmt.Errorf("incorrect number of pieces in row %d (want:8 got:%d)", i, currentpiece)
 		}
 	}
 	return pieces, nil
@@ -173,6 +184,12 @@ func NewPositionFromFen(fen string) (Position, error) {
 
 	return Position{
 		board: pieces,
+		// TODO implement full fen parsing
+		sideToMove:      White,
+		castling:        0b1111,
+		epSquare:        -1,
+		halfMoveClock:   0,
+		fullMoveCounter: 0,
 	}, nil
 }
 
