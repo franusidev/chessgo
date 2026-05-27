@@ -1,8 +1,8 @@
 [tools]
 go = "latest"
-[tasks.coordinatechess]
-description = "Run the coordinate chess"
-run = "go run cmd/coordinateschess/main.go "
+[tasks.displayfen]
+description = "Run the displayfen script"
+run = "go run cmd/displayfen/main.go "
 [tasks.build]
 description = "Build the chess cli"
 run = "go build -o bin/coordinateschess cmd/coordinateschess/main.go "

@@ -21,7 +21,10 @@ func renderPosition(pos chessgo.Position) string {
 	}
 	printSeparator()
 	b.WriteString("    A   B   C   D   E   F   G   H  \n\n")
-	fmt.Fprintf(&b, "%v to move\n", pos.SideToMove())
+	posinfo := pos.Info()
+	fmt.Fprintf(&b, "%v to move\n", posinfo.SideToMove)
+	fmt.Fprintf(&b, "Available castling: %v\n", posinfo.Castling)
+	fmt.Fprintf(&b, "Moves: %v HalfMoveClock: %v\n", posinfo.FullMoveCounter, posinfo.HalfMoveClock)
 	return b.String()
 }
 
