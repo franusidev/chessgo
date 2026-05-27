@@ -1,40 +1,192 @@
 package chessgo
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"testing"
 )
 
-var startingPieces = [64]Piece{
-	BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
-	BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn,
-	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-	Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
-	WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn,
-	WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook,
+var testingPositions = map[string]Position{
+	"starting": Position{
+		board: [64]Piece{
+			BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
+			BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty,
+			WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn,
+			WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook,
+		},
+		sideToMove:      White,
+		castling:        0b1111,
+		epSquare:        -1,
+		halfMoveClock:   0,
+		fullMoveCounter: 0,
+	},
 }
 
-func comparePiecesPosition(t *testing.T, want [64]Piece, got Position) {
+func comparePieces(t *testing.T, want [64]Piece, got [64]Piece) {
 	for i, wantPiece := range want {
-		gotPiece := got.PieceAt(i)
+		gotPiece := got[i]
 		if gotPiece != wantPiece {
 			t.Errorf("square %c%d: want '%v', got '%v'", 'A'+i/8, i%8+1, wantPiece, gotPiece)
 		}
 	}
 }
+func comparePositions(t *testing.T, want Position, got Position) {
+	wantPieces := want.board
+	gotPieces := got.board
+	comparePieces(t, wantPieces, gotPieces)
+	wantInfo := want.Info()
+	gotInfo := got.Info()
+	if diff := cmp.Diff(wantInfo, gotInfo); diff != "" {
+		t.Errorf("wrong info for starting position (-want +got):\n%s", diff)
+	}
+}
 
 func TestNewStartingPosition(t *testing.T) {
-	expected := startingPieces
+	expected := testingPositions["starting"]
 	pos := NewStartingPosition()
-	comparePiecesPosition(t, expected, pos)
+	comparePositions(t, expected, pos)
+}
 
-	if pos.SideToMove() != White {
-		t.Errorf("expected White to move")
+func TestParsePiecesFen(t *testing.T) {
+	testsValid := []struct {
+		name       string
+		piecesfen  string
+		wantPieces [64]Piece
+		wantErr    bool
+	}{
+		{
+			name:       "starting position",
+			piecesfen:  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+			wantPieces: testingPositions["starting"].board,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range testsValid {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parsePiecesFen(tt.piecesfen)
+			if err != nil && !tt.wantErr {
+				t.Fatalf("parsePiecesFen returned error: %s", err)
+			}
+			comparePieces(t, tt.wantPieces, got)
+		})
+	}
+}
+
+func TestNewPositionFromFen(t *testing.T) {
+	testsValid := []struct {
+		name string
+		fen  string
+		want Position
+	}{
+		{
+			name: "starting position",
+			fen:  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			want: testingPositions["starting"],
+		},
+	}
+	for _, tt := range testsValid {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _ := NewPositionFromFen(tt.fen)
+			comparePositions(t, tt.want, got)
+		})
+	}
+}
+
+func TestPieceFromRune(t *testing.T) {
+	tests := []struct {
+		name      string
+		pieceRune rune
+		want      Piece
+		wantErr   bool
+	}{
+		{
+			name:      "empty",
+			pieceRune: ' ',
+			want:      Empty,
+		},
+		{
+			name:      "white king",
+			pieceRune: 'K',
+			want:      WhiteKing,
+		},
+		{
+			name:      "white queen",
+			pieceRune: 'Q',
+			want:      WhiteQueen,
+		},
+		{
+			name:      "white bishop",
+			pieceRune: 'B',
+			want:      WhiteBishop,
+		},
+		{
+			name:      "white knight",
+			pieceRune: 'N',
+			want:      WhiteKnight,
+		},
+		{
+			name:      "white rook",
+			pieceRune: 'R',
+			want:      WhiteRook,
+		},
+		{
+			name:      "white pawn",
+			pieceRune: 'P',
+			want:      WhitePawn,
+		},
+		{
+			name:      "black king",
+			pieceRune: 'k',
+			want:      BlackKing,
+		},
+		{
+			name:      "black queen",
+			pieceRune: 'q',
+			want:      BlackQueen,
+		},
+		{
+			name:      "black bishop",
+			pieceRune: 'b',
+			want:      BlackBishop,
+		},
+		{
+			name:      "black knight",
+			pieceRune: 'n',
+			want:      BlackKnight,
+		},
+		{
+			name:      "black rook",
+			pieceRune: 'r',
+			want:      BlackRook,
+		},
+		{
+			name:      "black pawn",
+			pieceRune: 'p',
+			want:      BlackPawn,
+		},
+		{
+			name:      "invalid piece",
+			pieceRune: 'x',
+			want:      Empty,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := PieceFromRune(tt.pieceRune)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("error state mismatch: got err=%v, wantErr=%v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
 	}
 
 }
-
 func TestPieceString(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -143,23 +295,4 @@ func TestColorString(t *testing.T) {
 		})
 	}
 
-}
-func TestNewPositionFromFen(t *testing.T) {
-	testsValid := []struct {
-		name       string
-		fen        string
-		wantPieces [64]Piece
-	}{
-		{
-			name:       "starting position",
-			fen:        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			wantPieces: startingPieces,
-		},
-	}
-	for _, tt := range testsValid {
-		t.Run(tt.name, func(t *testing.T) {
-			got := NewPositionFromFen(tt.fen)
-			comparePiecesPosition(t, tt.wantPieces, got)
-		})
-	}
 }
