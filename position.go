@@ -85,8 +85,14 @@ func (c Color) String() string {
 	}
 }
 
+// Castling contains the information of available castling options in the position
 type Castling uint8
 
+// NewCastlingFromFen() accepts a string with the castling options in fen notation
+//
+//	'KQkq' => All castling positions available
+//	'Kq' => White can castle kingside, black can castle queenside
+//	'-' => No castling options available
 func NewCastlingFromFen(castlingfen string) (Castling, error) {
 	castling := Castling(0b0000)
 	return castling, nil
