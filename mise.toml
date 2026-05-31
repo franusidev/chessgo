@@ -1,19 +1,10 @@
 [tools]
 go = "latest"
-[tasks.displayfen]
-description = "Run the displayfen script"
-run = "go run cmd/displayfen/main.go "
 [tasks.build]
-description = "Build the chess cli"
-run = "go build -o bin/coordinateschess cmd/coordinateschess/main.go "
+description = "Build"
+run = "go build -o ./bin/coordinateschess ./cmd/coordinateschess/main.go "
 [tasks.test]
-description = "Test the project"
+description = "Test"
 run = [
 	"go test ./... -cover -coverprofile=coverage.out",
-]
-[tasks.coverage]
-description = "Show the test coverage"
-run = [
-	"go test ./... -coverprofile=coverage.out",
-	"go tool cover -html=coverage.out"
 ]
