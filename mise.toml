@@ -2,7 +2,7 @@
 go = "latest"
 [tasks.build]
 description = "Build"
-run = "go build -o ./bin/coordinateschess ./cmd/coordinateschess/main.go "
+run = "go build -o ./bin/displayfen ./cmd/displayfen/main.go"
 [tasks.test]
 description = "Test"
 run = [
