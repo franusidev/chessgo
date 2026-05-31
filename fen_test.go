@@ -153,7 +153,7 @@ func TestParsePiecesFen(t *testing.T) {
 	for _, tt := range testsValid {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := parsePiecesFen(tt.piecesfen)
+			got, err := parsePiecesFen([]byte(tt.piecesfen))
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("parsePiecesFen did not return an error")
@@ -209,7 +209,7 @@ func TestNewCastlingFromFen(t *testing.T) {
 	for _, tt := range testsValid {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := parseCastlingFen(tt.castlingfen)
+			got, err := parseCastlingFen([]byte(tt.castlingfen))
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("should return an error")
@@ -265,8 +265,13 @@ func Test_parseEnPassantFen(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "out of range",
-			square:  "q9",
+			name:    "out of range row",
+			square:  "q3",
+			wantErr: true,
+		},
+		{
+			name:    "out of range column",
+			square:  "e9",
 			wantErr: true,
 		},
 		{
@@ -282,7 +287,7 @@ func Test_parseEnPassantFen(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, gotErr := parseEnPassantFen(tt.square)
+			got, gotErr := parseEnPassantFen([]byte(tt.square))
 			if gotErr != nil {
 				if !tt.wantErr {
 					t.Errorf("parseEnPassantFen() failed: %v", gotErr)
@@ -333,10 +338,50 @@ func TestNewPositionFromFen(t *testing.T) {
 				epSquare:        -1,
 			},
 		},
+		{
+			name:    "wrong ammount of fields",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR KQkq - 0 1",
+			wantErr: true,
+		},
+		{
+			name:    "invalid pieces",
+			fen:     "rnb/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			wantErr: true,
+		},
+		{
+			name:    "invalid color field length",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR wdsa KQkq - 0 1",
+			wantErr: true,
+		},
+		{
+			name:    "invalid color field value",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR r KQkq - 0 1",
+			wantErr: true,
+		},
+		{
+			name:    "wrong castling",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w rkq - 0 1",
+			wantErr: true,
+		},
+		{
+			name:    "wrong en passant",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq wrong 0 1",
+			wantErr: true,
+		},
+		{
+			name:    "wrong half move",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - wrong 1",
+			wantErr: true,
+		},
+		{
+			name:    "wrong full move",
+			fen:     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 wrong",
+			wantErr: true,
+		},
 	}
 	for _, tt := range testsValid {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewPositionFromFen(tt.fen)
+			got, err := NewPositionFromFen([]byte(tt.fen))
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("NewPositionFromFen did not return an error")

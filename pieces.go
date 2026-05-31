@@ -24,51 +24,71 @@ const (
 	BlackPawn
 )
 
-func PieceFromRune(r rune) (Piece, error) {
-	// TODO change map ineficient implementation to switch
-	rpiece := map[rune]Piece{
-		' ': Empty,
-		'K': WhiteKing,
-		'Q': WhiteQueen,
-		'B': WhiteBishop,
-		'N': WhiteKnight,
-		'R': WhiteRook,
-		'P': WhitePawn,
-
-		'k': BlackKing,
-		'q': BlackQueen,
-		'b': BlackBishop,
-		'n': BlackKnight,
-		'r': BlackRook,
-		'p': BlackPawn,
-	}
-	piece, ok := rpiece[r]
-	if !ok {
+func pieceFromByte(r byte) (Piece, error) {
+	switch r {
+	case ' ':
+		return Empty, nil
+	case 'K':
+		return WhiteKing, nil
+	case 'Q':
+		return WhiteQueen, nil
+	case 'B':
+		return WhiteBishop, nil
+	case 'N':
+		return WhiteKnight, nil
+	case 'R':
+		return WhiteRook, nil
+	case 'P':
+		return WhitePawn, nil
+	case 'k':
+		return BlackKing, nil
+	case 'q':
+		return BlackQueen, nil
+	case 'b':
+		return BlackBishop, nil
+	case 'n':
+		return BlackKnight, nil
+	case 'r':
+		return BlackRook, nil
+	case 'p':
+		return BlackPawn, nil
+	default:
 		return Empty, fmt.Errorf("%q is not a valid piece", r)
 	}
-	return piece, nil
 }
 
 func (p Piece) String() string {
-	// TODO change map ineficient implementation to switch
-	pstring := map[Piece]string{
-		Empty:       " ",
-		WhiteKing:   "K",
-		WhiteQueen:  "Q",
-		WhiteBishop: "B",
-		WhiteKnight: "N",
-		WhiteRook:   "R",
-		WhitePawn:   "P",
+	switch p {
+	case Empty:
+		return " "
+	case WhiteKing:
+		return "K"
+	case WhiteQueen:
+		return "Q"
+	case WhiteBishop:
+		return "B"
+	case WhiteKnight:
+		return "N"
+	case WhiteRook:
+		return "R"
+	case WhitePawn:
+		return "P"
 
-		BlackKing:   "k",
-		BlackQueen:  "q",
-		BlackBishop: "b",
-		BlackKnight: "n",
-		BlackRook:   "r",
-		BlackPawn:   "p",
+	case BlackKing:
+		return "k"
+	case BlackQueen:
+		return "q"
+	case BlackBishop:
+		return "b"
+	case BlackKnight:
+		return "n"
+	case BlackRook:
+		return "r"
+	case BlackPawn:
+		return "p"
+	default:
+		return "?"
 	}
-
-	return pstring[p]
 }
 
 // The Color of the pieces

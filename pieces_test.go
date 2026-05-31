@@ -6,88 +6,88 @@ import (
 
 // The next tests are probably a little bit too verbose, enum conversions probably are better done with maps
 
-func TestPieceFromRune(t *testing.T) {
+func Test_pieceFromByte(t *testing.T) {
 	tests := []struct {
 		name      string
-		pieceRune rune
+		pieceByte byte
 		want      Piece
 		wantErr   bool
 	}{
 		{
 			name:      "empty",
-			pieceRune: ' ',
+			pieceByte: ' ',
 			want:      Empty,
 		},
 		{
 			name:      "white king",
-			pieceRune: 'K',
+			pieceByte: 'K',
 			want:      WhiteKing,
 		},
 		{
 			name:      "white queen",
-			pieceRune: 'Q',
+			pieceByte: 'Q',
 			want:      WhiteQueen,
 		},
 		{
 			name:      "white bishop",
-			pieceRune: 'B',
+			pieceByte: 'B',
 			want:      WhiteBishop,
 		},
 		{
 			name:      "white knight",
-			pieceRune: 'N',
+			pieceByte: 'N',
 			want:      WhiteKnight,
 		},
 		{
 			name:      "white rook",
-			pieceRune: 'R',
+			pieceByte: 'R',
 			want:      WhiteRook,
 		},
 		{
 			name:      "white pawn",
-			pieceRune: 'P',
+			pieceByte: 'P',
 			want:      WhitePawn,
 		},
 		{
 			name:      "black king",
-			pieceRune: 'k',
+			pieceByte: 'k',
 			want:      BlackKing,
 		},
 		{
 			name:      "black queen",
-			pieceRune: 'q',
+			pieceByte: 'q',
 			want:      BlackQueen,
 		},
 		{
 			name:      "black bishop",
-			pieceRune: 'b',
+			pieceByte: 'b',
 			want:      BlackBishop,
 		},
 		{
 			name:      "black knight",
-			pieceRune: 'n',
+			pieceByte: 'n',
 			want:      BlackKnight,
 		},
 		{
 			name:      "black rook",
-			pieceRune: 'r',
+			pieceByte: 'r',
 			want:      BlackRook,
 		},
 		{
 			name:      "black pawn",
-			pieceRune: 'p',
+			pieceByte: 'p',
 			want:      BlackPawn,
 		},
 		{
 			name:      "invalid piece",
-			pieceRune: 'x',
+			pieceByte: 'x',
 			want:      Empty,
 			wantErr:   true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := PieceFromRune(tt.pieceRune)
+			got, err := pieceFromByte(tt.pieceByte)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("error state mismatch: got err=%v, wantErr=%v", err, tt.wantErr)
 			}
@@ -169,6 +169,11 @@ func TestPieceString(t *testing.T) {
 			name:  "blackpawn",
 			piece: BlackPawn,
 			want:  "p",
+		},
+		{
+			name:  "invalid piece",
+			piece: Piece(211),
+			want:  "?",
 		},
 	}
 	for _, tt := range tests {

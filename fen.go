@@ -1,16 +1,16 @@
 package chessgo
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 // parsePiecesFen takes the field of a fen pieces string as paramater, it returns the arrangement of pieces if its
 // correct, else it returns an error
-func parsePiecesFen(fenpieces string) ([64]Piece, error) {
+func parsePiecesFen(fenpieces []byte) ([64]Piece, error) {
 	pieces := [64]Piece{}
-	rows := strings.Split(fenpieces, "/")
+	rows := bytes.Split(fenpieces, []byte("/"))
 	if len(rows) != 8 {
 		return [64]Piece{}, fmt.Errorf("wrong number of rows in fen string pieces: (want:8 got:%d)", len(rows))
 	}
@@ -25,7 +25,7 @@ func parsePiecesFen(fenpieces string) ([64]Piece, error) {
 					currentpiece++
 				}
 			} else {
-				piece, err := PieceFromRune(ch)
+				piece, err := pieceFromByte(ch)
 				if err != nil {
 					return [64]Piece{}, fmt.Errorf("error parsing piece %d at row %d: %w", currentpiece, i, err)
 				}
@@ -48,15 +48,15 @@ func parsePiecesFen(fenpieces string) ([64]Piece, error) {
 //	'KQkq' => All castling positions available
 //	'Kq' => White can castle kingside, black can castle queenside
 //	'-' => No castling options available
-func parseCastlingFen(castlingfen string) (Castling, error) {
+func parseCastlingFen(castlingfen []byte) (Castling, error) {
 	var zero Castling
 	if len(castlingfen) > 4 {
 		return zero, fmt.Errorf("too many characters in castlingfen: %d (max. 4)", len(castlingfen))
 	}
-	if castlingfen == "" {
+	if len(castlingfen) == 0 {
 		return zero, fmt.Errorf("fen castling string is empty")
 	}
-	if castlingfen == "-" {
+	if len(castlingfen) == 1 && castlingfen[0] == '-' {
 		return zero, nil
 	}
 	castling := Castling(0b0000)
@@ -78,8 +78,8 @@ func parseCastlingFen(castlingfen string) (Castling, error) {
 	return castling, nil
 }
 
-func parseEnPassantFen(square string) (int, error) {
-	if square == "-" {
+func parseEnPassantFen(square []byte) (int, error) {
+	if len(square) == 1 && square[0] == '-' {
 		return -1, nil
 	}
 	if len(square) != 2 {
@@ -97,12 +97,11 @@ func parseEnPassantFen(square string) (int, error) {
 	return 8*row + column, nil
 }
 
-// TODO change to use []byte instead fo string for flexibility
 // NewPositionFromFen loads a fen string and returns a position from it
 //
 // An example fen string: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-func NewPositionFromFen(fen string) (Position, error) {
-	fields := strings.Split(fen, " ")
+func NewPositionFromFen(fen []byte) (Position, error) {
+	fields := bytes.Split(fen, []byte(" "))
 
 	if len(fields) != 6 {
 		return Position{}, fmt.Errorf("wrong amount of fields in fen string: (want:6 got:%d)", len(fields))
@@ -114,13 +113,16 @@ func NewPositionFromFen(fen string) (Position, error) {
 	}
 
 	var color Color
-	switch fields[1] {
-	case "w":
+	if len(fields[1]) != 1 {
+		return Position{}, fmt.Errorf("invalid current color field length: %s (expected: 1 got:%d)", fields[1], len(fields[1]))
+	}
+	switch fields[1][0] {
+	case 'w':
 		color = White
-	case "b":
+	case 'b':
 		color = Black
 	default:
-		return Position{}, fmt.Errorf("invalid current color field: %s", fields[1])
+		return Position{}, fmt.Errorf("invalid current color field, expected 'w' or 'b', got: %s", fields[1])
 	}
 
 	castling, err := parseCastlingFen(fields[2])
@@ -132,11 +134,11 @@ func NewPositionFromFen(fen string) (Position, error) {
 	if err != nil {
 		return Position{}, fmt.Errorf("in parseEnPassantFen: %w", err)
 	}
-	halfmove, err := strconv.Atoi(fields[4])
+	halfmove, err := strconv.Atoi(string(fields[4]))
 	if err != nil {
 		return Position{}, fmt.Errorf("when parsing half move clock: %w", err)
 	}
-	fullmove, err := strconv.Atoi(fields[5])
+	fullmove, err := strconv.Atoi(string(fields[5]))
 	if err != nil {
 		return Position{}, fmt.Errorf("when parsing full move counter: %w", err)
 	}
