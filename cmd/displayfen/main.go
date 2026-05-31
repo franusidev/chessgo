@@ -46,7 +46,7 @@ func main() {
 		fmt.Println("File is empty")
 		os.Exit(1)
 	}
-	pos, err := chessgo.NewPositionFromFen(s.Text())
+	pos, err := chessgo.NewPositionFromFen(s.Bytes())
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
