@@ -97,6 +97,7 @@ func parseEnPassantFen(square string) (int, error) {
 	return 8*row + column, nil
 }
 
+// TODO change to use []byte instead fo string for flexibility
 // NewPositionFromFen loads a fen string and returns a position from it
 //
 // An example fen string: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/franusidev/chessgo"
+	"os"
 	"strings"
 )
 
@@ -29,6 +31,25 @@ func renderPosition(pos chessgo.Position) string {
 }
 
 func main() {
-	pos := chessgo.NewStartingPosition()
+	if len(os.Args) != 2 {
+		fmt.Println("must provide as argument one fen file to read")
+		os.Exit(1)
+	}
+	filepath := os.Args[1]
+	file, err := os.Open(filepath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	s := bufio.NewScanner(file)
+	if !s.Scan() {
+		fmt.Println("File is empty")
+		os.Exit(1)
+	}
+	pos, err := chessgo.NewPositionFromFen(s.Text())
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	fmt.Println(renderPosition(pos))
 }
